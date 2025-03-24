@@ -19,19 +19,21 @@ A lightweight macOS menu bar app that displays GitHub service status using traff
 ### Method 1: Build from Source
 
 1. Clone this repository:
-   ```
-   git clone https://github.com/oskarpie//GitHubLights.git
+
+   ```shell
+   git clone https://github.com/oskarpie/GitHubLights.git
    cd GitHubLights
    ```
 
 2. Build and create the app bundle:
-   ```
-   chmod +x build-app.sh
+
+   ```shell
    ./build-app.sh
    ```
 
 3. Move the app to your Applications folder:
-   ```
+
+   ```shell
    mv "GitHub Lights.app" /Applications/
    ```
 
@@ -40,12 +42,14 @@ A lightweight macOS menu bar app that displays GitHub service status using traff
 ### Method 2: Manual Installation
 
 1. Build the Swift package:
-   ```
+
+   ```shell
    swift build -c release
    ```
 
 2. Create the app bundle manually:
-   ```
+
+   ```shell
    mkdir -p "GitHub Lights.app/Contents/MacOS"
    mkdir -p "GitHub Lights.app/Contents/Resources"
    cp .build/release/GitHubLights "GitHub Lights.app/Contents/MacOS/"
@@ -54,7 +58,8 @@ A lightweight macOS menu bar app that displays GitHub service status using traff
    ```
 
 3. Move to Applications:
-   ```
+
+   ```shell
    mv "GitHub Lights.app" /Applications/
    ```
 
@@ -66,7 +71,7 @@ A lightweight macOS menu bar app that displays GitHub service status using traff
 
 ## Project Structure
 
-```
+```text
 GitHubLights/
 ├── Package.swift                  # Swift package configuration
 ├── Sources/
