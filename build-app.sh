@@ -18,14 +18,14 @@ mkdir -p "$APP_NAME/Contents/Resources"
 cp .build/release/GitHubLights "$APP_NAME/Contents/MacOS/"
 
 # Copy Info.plist
-cp Sources/GitHubLights/Info.plist "$APP_NAME/Contents/"
+cp Resources/Info.plist "$APP_NAME/Contents/"
 
 # Check if iconutil is available
 if command -v iconutil &> /dev/null; then
     # Create temporary iconset directory
     ICONSET="AppIcon.iconset"
     mkdir -p "$ICONSET"
-    
+
     # Convert the SVG to PNG for various sizes
     # Requires rsvg-convert or similar tool
     if command -v rsvg-convert &> /dev/null; then
@@ -36,7 +36,7 @@ if command -v iconutil &> /dev/null; then
                 rsvg-convert -w $((size*2)) -h $((size*2)) Sources/GitHubLights/AppIcon.svg -o "$ICONSET/icon_${size}x${size}@2x.png"
             fi
         done
-        
+
         # Create icns file
         echo "Creating .icns file..."
         iconutil -c icns "$ICONSET" -o "AppIcon.icns"
@@ -49,6 +49,9 @@ if command -v iconutil &> /dev/null; then
 else
     echo "Warning: iconutil not found. Skipping icon generation."
 fi
+
+# Copy icon file directly
+cp Resources/AppIcon.icns "$APP_NAME/Contents/Resources/"
 
 # Create PkgInfo file
 echo "APPLaplt" > "$APP_NAME/Contents/PkgInfo"
