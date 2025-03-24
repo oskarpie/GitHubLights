@@ -49,7 +49,7 @@ A lightweight macOS menu bar app that displays GitHub service status using traff
    mkdir -p "GitHub Lights.app/Contents/MacOS"
    mkdir -p "GitHub Lights.app/Contents/Resources"
    cp .build/release/GitHubLights "GitHub Lights.app/Contents/MacOS/"
-   cp Sources/GitHubLights/Info.plist "GitHub Lights.app/Contents/"
+   cp Resources/Info.plist "GitHub Lights.app/Contents/"
    echo "APPLaplt" > "GitHub Lights.app/Contents/PkgInfo"
    ```
 
@@ -71,9 +71,10 @@ GitHubLights/
 ├── Package.swift                  # Swift package configuration
 ├── Sources/
 │   └── GitHubLights/
-│       ├── main.swift             # Main application code
-│       ├── Info.plist             # App bundle information
-│       └── AppIcon.svg            # App icon source
+│       └── main.swift             # Main application code
+├── Resources/
+│   ├── Info.plist                 # App bundle information
+│   └── AppIcon.icns               # App icon 
 ├── build-app.sh                   # Build script
 └── README.md                      # This file
 ```
