@@ -81,8 +81,4 @@ GitHubLights/
 
 ## License
 
-This project is released under the MIT License.
-
-## License
-
 This project is available as open source under the terms of the MIT License.

@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleIdentifier</key>
-    <string>com.example.GitHubLights</string>
+    <string>com.oskarpie.GitHubLights</string>
     <key>CFBundleName</key>
     <string>GitHub Lights</string>
     <key>CFBundleExecutable</key>
@@ -23,7 +23,7 @@
     <key>LSUIElement</key>
     <true/>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2025 Your Name. All rights reserved.</string>
+    <string>Copyright © 2025 Oskar Pienkos. All rights reserved.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
