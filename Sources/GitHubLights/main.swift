@@ -8,6 +8,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Store service statuses
     var serviceStatuses: [String: String] = [:]
     
+    // Define fixed positions for GitHub services
+    // Maps service name to grid position (0-9)
+    let servicePositions: [String: Int] = [
+        "Git Operations": 0,
+        "API Requests": 1,
+        "Webhooks": 2,
+        "Issues": 3,
+        "Pull Requests": 4,
+        "Actions": 5,
+        "Packages": 6,
+        "Pages": 7,
+        "Codespaces": 8,
+        "Copilot": 9
+        // Add more services if needed
+    ]
+    
+    // Reverse mapping to find service by position
+    lazy var positionToService: [Int: String] = {
+        var mapping: [Int: String] = [:]
+        for (service, position) in servicePositions {
+            mapping[position] = service
+        }
+        return mapping
+    }()
+    
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Create status item in the menu bar
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -19,8 +44,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem.separator())
         
         // Add service status submenu items that will be updated
-        for _ in 0..<10 {
-            let item = NSMenuItem(title: "Loading...", action: nil, keyEquivalent: "")
+        for position in 0..<10 {
+            let serviceName = positionToService[position] ?? "Unknown Service"
+            let item = NSMenuItem(title: "\(serviceName): Loading...", action: nil, keyEquivalent: "")
             menu.addItem(item)
         }
         
@@ -47,7 +73,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            guard let data = data, error == nil,
+            guard let self = self,
+                  let data = data, error == nil,
                   let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let components = jsonObject["components"] as? [[String: Any]] else {
                 DispatchQueue.main.async {
@@ -56,27 +83,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 return
             }
             
-            // Filter out components that aren't GitHub services and exclude position 3
-            let filteredComponents = components.filter { component in
-                guard let name = component["name"] as? String,
-                      let position = component["position"] as? Int else { return false }
-                // Exclude overall status component and position 3
-                return name != "GitHub Status" && position != 3
-            }
-            
-            // Process first 10 services (for our 5x2 grid)
-            let maxServices = min(10, filteredComponents.count)
             var statuses: [String: String] = [:]
             
-            for i in 0..<maxServices {
-                if let name = filteredComponents[i]["name"] as? String,
-                   let status = filteredComponents[i]["status"] as? String {
-                    statuses[name] = status
+            // Process all services and map them to our known services
+            for component in components {
+                if let name = component["name"] as? String,
+                   let status = component["status"] as? String,
+                   name != "GitHub Status" {
+                    // Only store services we've defined in our position map
+                    if self.servicePositions[name] != nil {
+                        statuses[name] = status
+                    }
                 }
             }
             
             DispatchQueue.main.async {
-                self?.serviceStatuses = statuses
+                self.serviceStatuses = statuses
                 completion()
             }
         }
@@ -105,33 +127,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let dotSize: CGFloat = 6
         let spacing: CGFloat = 4
         
-        var index = 0
-        for row in 0..<2 {
-            for col in 0..<5 {
-                if index < serviceStatuses.count {
-                    let status = Array(serviceStatuses.values)[index]
-                    let dotColor = colorForStatus(status)
-                    
-                    let x = CGFloat(col) * (dotSize + spacing)
-                    let y = CGFloat(row) * (dotSize + spacing)
-                    
-                    // Draw filled circle with traffic light colors
-                    dotColor.set()
-                    let dotRect = NSRect(x: x, y: y, width: dotSize, height: dotSize)
-                    let path = NSBezierPath(ovalIn: dotRect)
-                    path.fill()
-                    
-                    // Add slight highlight for 3D effect like traffic lights
-                    NSColor.white.withAlphaComponent(0.3).set()
-                    let highlightPath = NSBezierPath()
-                    highlightPath.move(to: NSPoint(x: x + dotSize/2, y: y + dotSize - 1))
-                    highlightPath.line(to: NSPoint(x: x + dotSize - 1, y: y + dotSize/2))
-                    highlightPath.line(to: NSPoint(x: x + dotSize/2, y: y + 1))
-                    highlightPath.line(to: NSPoint(x: x + 1, y: y + dotSize/2))
-                    highlightPath.close()
-                    highlightPath.fill()
-                }
-                index += 1
+        // Iterate through all possible positions (0-9)
+        for position in 0..<10 {
+            let row = position / 5
+            let col = position % 5
+            
+            // Find the service for this position
+            if let serviceName = positionToService[position] {
+                // Get the status or default to unknown
+                let status = serviceStatuses[serviceName] ?? "unknown"
+                let dotColor = colorForStatus(status)
+                
+                let x = CGFloat(col) * (dotSize + spacing)
+                let y = CGFloat(row) * (dotSize + spacing)
+                
+                // Draw filled circle with traffic light colors
+                dotColor.set()
+                let dotRect = NSRect(x: x, y: y, width: dotSize, height: dotSize)
+                let path = NSBezierPath(ovalIn: dotRect)
+                path.fill()
+                
+                // Add slight highlight for 3D effect like traffic lights
+                NSColor.white.withAlphaComponent(0.3).set()
+                let highlightPath = NSBezierPath()
+                highlightPath.move(to: NSPoint(x: x + dotSize/2, y: y + dotSize - 1))
+                highlightPath.line(to: NSPoint(x: x + dotSize - 1, y: y + dotSize/2))
+                highlightPath.line(to: NSPoint(x: x + dotSize/2, y: y + 1))
+                highlightPath.line(to: NSPoint(x: x + 1, y: y + dotSize/2))
+                highlightPath.close()
+                highlightPath.fill()
             }
         }
         
@@ -145,30 +169,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Start at index 2 to skip the first few menu items (Refresh, Open GitHub Status, separator)
             var menuIndex = 3
             
-            // Sort services by name
-            let sortedServices = serviceStatuses.sorted { $0.key < $1.key }
-            
-            for (name, status) in sortedServices {
-                if menuIndex < menuItems.count - 2 { // Leave space for the last separator and Quit item
-                    let statusColor = colorForStatus(status)
-                    // Create a small colored circle as indicator
+            // Update menu items based on fixed positions
+            for position in 0..<10 {
+                if let serviceName = positionToService[position] {
+                    let status = serviceStatuses[serviceName] ?? "Unknown"
                     let statusEmoji = status.lowercased() == "operational" ? "🟢" : 
                                       status.lowercased().contains("degraded") ? "🟠" : 
                                       status.lowercased().contains("outage") ? "🔴" : "⚪️"
                     
-                    menuItems[menuIndex].title = "\(statusEmoji) \(name): \(status.replacingOccurrences(of: "_", with: " ").capitalized)"
-                    
-                    // Create attributed string for colored status
-                    let attributedTitle = NSMutableAttributedString(string: menuItems[menuIndex].title)
-                    menuItems[menuIndex].attributedTitle = attributedTitle
-                    
-                    menuIndex += 1
+                    if menuIndex < menuItems.count - 2 {
+                        menuItems[menuIndex].title = "\(statusEmoji) \(serviceName): \(status.replacingOccurrences(of: "_", with: " ").capitalized)"
+                    }
                 }
-            }
-            
-            // Clear any remaining items
-            while menuIndex < menuItems.count - 2 {
-                menuItems[menuIndex].title = ""
                 menuIndex += 1
             }
         }
